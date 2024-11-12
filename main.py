@@ -1,4 +1,4 @@
- import pandas as pd
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import linear_kernel
 
@@ -24,10 +24,10 @@ cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
 # Function to get book recommendations
 def get_recommendations(title, cosine_sim=cosine_sim):
     # Get the index of the book that matches the title
-    if title not in books['title'].values:
+    try:
+        idx = books.index[books['title'] == title][0]
+    except IndexError:
         return "Book not found in the dataset."
-
-    idx = books.index[books['title'] == title][0]
 
     # Get the pairwise similarity scores of all books with that book
     sim_scores = list(enumerate(cosine_sim[idx]))
