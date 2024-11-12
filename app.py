@@ -1,4 +1,39 @@
+import streamlit as st
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
+# Set page configuration
+st.set_page_config(
+    page_title="Book Recommendation System",
+    page_icon="📚",
+    layout="wide"
+)
+
+# Add a title and description
+st.title("📚 Book Recommendation System")
+st.write("Enter a book title and get personalized book recommendations!")
+
+# Load and process the data
+@st.cache_data  # This decorator caches the data
+def load_data():
+    books = pd.read_csv('books.csv')
+    return books
+
+def get_recommendations(title, books, cosine_sim):
+    # Get the index of the book that matches the title
+    if title not in books['title'].values:
+        return "Book not found in the dataset."
+
+    idx = books.index[books['title'] == title][0]
+
+    # Get the pairwise similarity scores of all books with that book
+    sim_scores = list(enumerate(cosine_sim[idx]))
+
+    # Sort the books based on the similarity scores
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    # Get the scores of the 5 most similar books (excluding the book itself)
     sim_scores = sim_scores[1:6]
 
     # Get the book indices
