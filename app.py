@@ -84,21 +84,6 @@ try:
                     st.write(f"Categories: {row['categories']}")
                     st.divider()
 
-    # Add some additional information
-    with st.sidebar:
-        st.header("About")
-        st.write("""
-        This book recommendation system uses content-based filtering to suggest books 
-        similar to the one you select. It considers factors such as:
-        - Book categories
-        - Authors
-        - Book descriptions
-        """)
-        
-        st.header("Statistics")
-        st.write(f"Total books in database: {len(books)}")
-        st.write(f"Number of unique authors: {books['authors'].nunique()}")
 
-except Exception as e:
     st.error(f"An error occurred: {str(e)}")
     st.write("Please ensure that the 'books.csv' file is in the correct location and format.")
