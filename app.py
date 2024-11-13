@@ -7,7 +7,7 @@ from langchain.prompts import PromptTemplate
 import plotly.express as px
 =======
 from sklearn.feature_extraction.text import TfidfVectorizer
->>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
+
 
 # Set page configuration
 st.set_page_config(
