@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-<<<<<<< HEAD
+
 from langchain_community.llms import Ollama
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
