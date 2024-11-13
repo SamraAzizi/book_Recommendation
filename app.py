@@ -1,104 +1,178 @@
 import streamlit as st
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import linear_kernel
+from langchain_community.llms import Ollama
+from langchain.chains import LLMChain
+from langchain.prompts import PromptTemplate
+import plotly.express as px
 
 # Set page configuration
 st.set_page_config(
     page_title="Book Recommendation System",
     page_icon="📚",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Add a title and description
-st.title("📚 Book Recommendation System")
-st.write("Enter a book title and get personalized book recommendations!")
+# Custom CSS
+st.markdown("""
+    <style>
+    .main {
+        padding: 2rem;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #ff4b4b;
+        color: white;
+    }
+    .book-container {
+        background-color: #f0f2f6;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    .sidebar-content {
+        padding: 1.5rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# Add a title and description with custom styling
+st.markdown("""
+    <h1 style='text-align: center; color: #ff4b4b;'>📚 AI-Powered Book Recommendation System</h1>
+    <p style='text-align: center; font-size: 1.2em;'>Get personalized book recommendations using AI!</p>
+    <hr>
+""", unsafe_allow_html=True)
+
+# Initialize Ollama
+@st.cache_resource
+def init_ollama():
+    return Ollama(model="llama2")
 
 # Load and process the data
-@st.cache_data  # This decorator caches the data
+@st.cache_data
 def load_data():
     books = pd.read_csv('books.csv')
+    books['categories'] = books['categories'].fillna('')
+    books['authors'] = books['authors'].fillna('')
+    books['description'] = books['description'].fillna('')
+    books['published_year'] = pd.to_numeric(books['published_year'], errors='coerce')
     return books
 
-def get_recommendations(title, books, cosine_sim):
-    # Get the index of the book that matches the title
-    if title not in books['title'].values:
-        return "Book not found in the dataset."
-
-    idx = books.index[books['title'] == title][0]
-
-    # Get the pairwise similarity scores of all books with that book
-    sim_scores = list(enumerate(cosine_sim[idx]))
-
-    # Sort the books based on the similarity scores
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-
-    # Get the scores of the 5 most similar books (excluding the book itself)
-    sim_scores = sim_scores[1:6]
-
-    # Get the book indices
-    book_indices = [i[0] for i in sim_scores]
-
-    # Return the top 5 most similar books with their details
-    recommended_books = books.iloc[book_indices][['title', 'authors', 'categories', 'average_rating']]
-    return recommended_books
+def get_ai_recommendations(book_info, user_preferences, llm):
+    prompt = PromptTemplate(
+        input_variables=["book_info", "user_preferences"],
+        template="""
+        Based on the following book information:
+        {book_info}
+        
+        And user preferences:
+        {user_preferences}
+        
+        Recommend 5 similar books from the dataset. For each recommendation, provide:
+        1. Title
+        2. Author
+        3. Brief explanation of why it's recommended
+        
+        Format the response as a structured list with clear separations between recommendations.
+        """
+    )
+    
+    chain = LLMChain(llm=llm, prompt=prompt)
+    response = chain.run(book_info=book_info, user_preferences=user_preferences)
+    return response
 
 try:
-    # Load the data
+    # Load the data and initialize Ollama
     books = load_data()
+    llm = init_ollama()
 
-    # Create combined features
-    books['combined_features'] = books['categories'] + ' ' + books['authors'] + ' ' + books['description']
-
-    # Create TF-IDF vectors
-    tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(books['combined_features'])
-    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
-
-    # Create a dropdown with all book titles
-    book_titles = sorted(books['title'].tolist())
-    selected_title = st.selectbox(
-        "Select a book you like:",
-        book_titles
-    )
-
-    if st.button('Get Recommendations'):
-        # Get recommendations
-        recommendations = get_recommendations(selected_title, books, cosine_sim)
-        
-        if isinstance(recommendations, str):
-            st.error(recommendations)
-        else:
-            st.success("Here are your recommended books:")
-            
-            # Display recommendations in a nice format
-            for idx, row in recommendations.iterrows():
-                with st.container():
-                    col1, col2, col3 = st.columns([3, 2, 1])
-                    with col1:
-                        st.write(f"**{row['title']}**")
-                    with col2:
-                        st.write(f"by {row['authors']}")
-                    with col3:
-                        st.write(f"Rating: {row['average_rating']:.2f}")
-                    st.write(f"Categories: {row['categories']}")
-                    st.divider()
-
-    # Add some additional information
+    # Sidebar content
     with st.sidebar:
-        st.header("About")
-        st.write("""
-        This book recommendation system uses content-based filtering to suggest books 
-        similar to the one you select. It considers factors such as:
-        - Book categories
-        - Authors
-        - Book descriptions
-        """)
+        st.markdown("""
+            <div class='sidebar-content'>
+                <h2>🤖 AI Preferences</h2>
+            </div>
+        """, unsafe_allow_html=True)
         
-        st.header("Statistics")
-        st.write(f"Total books in database: {len(books)}")
-        st.write(f"Number of unique authors: {books['authors'].nunique()}")
+        # User preferences
+        genre_preference = st.multiselect(
+            "Preferred Genres",
+            options=sorted(set([genre.strip() for genres in books['categories'].unique() for genre in genres.split(',') if genre.strip()])),
+            help="Select one or more genres you enjoy"
+        )
+        
+        reading_level = st.select_slider(
+            "Reading Level",
+            options=['Easy', 'Medium', 'Advanced'],
+            value='Medium'
+        )
+        
+        mood = st.select_slider(
+            "Book Mood",
+            options=['Light & Fun', 'Neutral', 'Dark & Serious'],
+            value='Neutral'
+        )
+        
+        # Show statistics
+        st.markdown("### 📈 Statistics")
+        st.write(f"Total Books: {len(books):,}")
+        st.write(f"Unique Authors: {books['authors'].nunique():,}")
+        avg_rating = books['average_rating'].mean()
+        st.write(f"Average Rating: {avg_rating:.2f}⭐")
+
+        # Add a rating distribution plot
+        fig = px.histogram(books, x='average_rating', nbins=20,
+                          title='Rating Distribution',
+                          labels={'average_rating': 'Rating', 'count': 'Number of Books'})
+        fig.update_layout(showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Main content
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        selected_title = st.selectbox(
+            "🔍 Select a book you enjoyed:",
+            options=sorted(books['title'].unique()),
+            help="Type or select a book title"
+        )
+
+    with col2:
+        if st.button('Get AI Recommendations 🤖'):
+            st.session_state.show_recommendations = True
+
+    # Show recommendations
+    if st.session_state.get('show_recommendations', False):
+        # Get selected book info
+        selected_book = books[books['title'] == selected_title].iloc[0]
+        book_info = f"""
+        Title: {selected_book['title']}
+        Author: {selected_book['authors']}
+        Categories: {selected_book['categories']}
+        Description: {selected_book['description']}
+        """
+        
+        # Prepare user preferences
+        user_preferences = f"""
+        Preferred Genres: {', '.join(genre_preference)}
+        Reading Level: {reading_level}
+        Preferred Mood: {mood}
+        """
+        
+        with st.spinner('🤖 AI is generating personalized recommendations...'):
+            recommendations = get_ai_recommendations(book_info, user_preferences, llm)
+            
+            st.success("🎯 Here are your AI-powered recommendations:")
+            st.markdown(recommendations)
+
+    # Add footer
+    st.markdown("""
+        <hr>
+        <p style='text-align: center; color: #888;'>
+            Powered by Ollama LLM | Made with ❤️
+        </p>
+    """, unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"An error occurred: {str(e)}")
-    st.write("Please ensure that the 'books.csv' file is in the correct location and format.")
+    st.write("Please ensure that all requirements are installed and Ollama is running.")
