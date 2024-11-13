@@ -4,6 +4,11 @@ from langchain_community.llms import Ollama
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 import plotly.express as px
+from langchain_community.llms import Ollama
+
+@st.cache_resource
+def init_ollama():
+    return Ollama(model="llama2", api_url="https://api.ollama.com/generate")
 
 # Set page configuration
 st.set_page_config(
