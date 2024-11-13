@@ -88,9 +88,9 @@ try:
     books = load_data()
     llm = init_ollama()
 
-<<<<<<< HEAD
+
     # Sidebar content
-=======
+
     # Create combined features
     books['combined_features'] = books['categories'] + ' ' + books['authors'] + ' ' + books['description']
 
@@ -133,7 +133,7 @@ try:
     st.write("Please ensure that the 'books.csv' file is in the correct location and format.")
 
     # Add some additional information
->>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
+
     with st.sidebar:
         st.markdown("""
             <div class='sidebar-content'>
@@ -221,8 +221,7 @@ try:
     """, unsafe_allow_html=True)
 
 except Exception as e:
-<<<<<<< HEAD
+
     st.error(f"An error occurred: {str(e)}")
     st.write("Please ensure that all requirements are installed and Ollama is running.")
-=======
->>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
+
