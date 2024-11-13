@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
+<<<<<<< HEAD
 from langchain_community.llms import Ollama
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 import plotly.express as px
+=======
+from sklearn.feature_extraction.text import TfidfVectorizer
+>>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
 
 # Set page configuration
 st.set_page_config(
@@ -86,7 +90,52 @@ try:
     books = load_data()
     llm = init_ollama()
 
+<<<<<<< HEAD
     # Sidebar content
+=======
+    # Create combined features
+    books['combined_features'] = books['categories'] + ' ' + books['authors'] + ' ' + books['description']
+
+    # Create TF-IDF vectors
+    tfidf = TfidfVectorizer(stop_words='english')
+    tfidf_matrix = tfidf.fit_transform(books['combined_features'])
+    cosine_sim = linear_kernel(tfidf_matrix, tfidf_matrix)
+
+    # Create a dropdown with all book titles
+    book_titles = sorted(books['title'].tolist())
+    selected_title = st.selectbox(
+        "Select a book you like:",
+        book_titles
+    )
+
+    if st.button('Get Recommendations'):
+        # Get recommendations
+        recommendations = get_recommendations(selected_title, books, cosine_sim)
+        
+        if isinstance(recommendations, str):
+            st.error(recommendations)
+        else:
+            st.success("Here are your recommended books:")
+            
+            # Display recommendations in a nice format
+            for idx, row in recommendations.iterrows():
+                with st.container():
+                    col1, col2, col3 = st.columns([3, 2, 1])
+                    with col1:
+                        st.write(f"**{row['title']}**")
+                    with col2:
+                        st.write(f"by {row['authors']}")
+                    with col3:
+                        st.write(f"Rating: {row['average_rating']:.2f}")
+                    st.write(f"Categories: {row['categories']}")
+                    st.divider()
+
+
+    st.error(f"An error occurred: {str(e)}")
+    st.write("Please ensure that the 'books.csv' file is in the correct location and format.")
+
+    # Add some additional information
+>>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
     with st.sidebar:
         st.markdown("""
             <div class='sidebar-content'>
@@ -174,5 +223,8 @@ try:
     """, unsafe_allow_html=True)
 
 except Exception as e:
+<<<<<<< HEAD
     st.error(f"An error occurred: {str(e)}")
     st.write("Please ensure that all requirements are installed and Ollama is running.")
+=======
+>>>>>>> 332f686ddac32ee969593e304f731cf6d717058f
