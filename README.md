@@ -42,3 +42,16 @@ To run this application, you need to have Python installed on your machine. Foll
 1. Run the Streamlit application:
    ```bash
    streamlit run app.py
+   ```
+
+   # Data
+
+The application uses a CSV file named `books.csv`, which should contain the following columns:
+
+- `title`: The title of the book.
+- `authors`: The authors of the book.
+- `categories`: The genres or categories of the book.
+- `description`: A brief description of the book.
+- `average_rating`: The average rating of the book.
+
+Make sure to format the CSV file correctly to ensure the application runs smoothly.
