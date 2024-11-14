@@ -9,8 +9,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Data](#data)
-- [Contributing](#contributing)
-- [License](#license)
+
 
 ## Features
 
