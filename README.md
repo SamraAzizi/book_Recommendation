@@ -36,3 +36,9 @@ To run this application, you need to have Python installed on your machine. Foll
    ```bash
    git clone https://github.com/yourusername/book-recommendation-system.git
    cd book-recommendation-system
+   ```
+   # Usage
+
+1. Run the Streamlit application:
+   ```bash
+   streamlit run app.py
