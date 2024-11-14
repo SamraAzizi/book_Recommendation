@@ -1,14 +1,3 @@
-# AI-Powered Book Recommendation System
-
-📚 Welcome to the AI-Powered Book Recommendation System! This application leverages advanced machine learning techniques and natural language processing to provide personalized book recommendations based on user preferences and previously enjoyed books.
-
-## Table of Contents
-
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Data](#data)
 
 
 ## Features
